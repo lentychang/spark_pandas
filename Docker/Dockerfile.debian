@@ -1,0 +1,26 @@
+#FROM openjdk:8-alpine
+FROM adoptopenjdk/openjdk8:debian-slim
+
+ARG DAEMON_RUN=true
+ARG SPARK_VERSION=2.4.4
+ARG HADOOP_VERSION=2.7
+
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils wget tar bash &&\
+    rm -rf /var/lib/apt/list/*
+RUN wget http://apache.mirror.anlx.net/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
+RUN tar -xzf spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz && \
+    mv spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} /spark && \
+    rm spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz
+COPY start-master.sh /start-master.sh
+COPY start-worker.sh /start-worker.sh
+
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
+    bash ./miniconda.sh -b && \
+    echo "source ~/miniconda3/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    rm miniconda.sh
+
+RUN /root/miniconda3/bin/conda install -n base python=3.6 pyarrow pyspark pandas
+#RUN apt-get update && apt-get install -y --no-install-recommends python3-dev \
+#RUN  apt-get update && apt-get install -y --no-install-recommends python3-pip &&\
+#     pip3 install --upgrade pip setuptools
+#RUN pip3 install pandas
